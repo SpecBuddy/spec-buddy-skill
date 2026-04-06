@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "step-executor",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "The step-executor subagent just finished executing a plan step. Review the subagent's output and identify any context discovered during execution that is relevant for subsequent steps (e.g., file structures, API shapes, naming conventions, existing patterns, dependency versions, unexpected findings). Then inject a reminder: list the relevant context items and ask Claude to update the next steps in the plan to reference them. If no useful context was discovered, respond with {\"ok\": true} silently.",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

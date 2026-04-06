@@ -1,0 +1,9 @@
+{
+  "name": "spec-buddy",
+  "description": "Plugin for working with specifications and technical documentation",
+  "version": "1.0.2",
+  "author": {
+    "name": "Alexander"
+  },
+  "homepage": "https://github.com/yourusername/spec-buddy-skill"
+}
