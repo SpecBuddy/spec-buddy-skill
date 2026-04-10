@@ -1,0 +1,12 @@
+{
+  "name": "spec-buddy-repo",
+  "owner": {
+    "name": "Alex"
+  },
+  "plugins": [
+    {
+      "name": "spec-buddy",
+      "source": ".º/"
+    }
+  ]
+}
