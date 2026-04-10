@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "spec-buddy",
-      "source": ".º/"
+      "source": "./"
     }
   ]
 }
