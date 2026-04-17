@@ -99,16 +99,15 @@ Create comprehensive plan with sections:
 
 ### 4. Generate Implementation Steps
 
-> **CRITICAL — `<!-- specbuddy:run-step  -->` comment is MANDATORY**
+> **CRITICAL — `<!-- specbuddy:step -->` comment is MANDATORY**
 >
-> The `<!-- specbuddy:run-step  -->` comment MUST appear on the line immediately after every `### Step N:` heading — no exceptions.
-> The SpecBuddy harness uses this comment to locate executable steps. If it is missing, the step will never be found and execution will **silently skip it**.
+> See [Annotation Behavior](#annotation-behavior) for the complete rules. In summary: `<!-- specbuddy:step -->` must appear on the line immediately after every `### Step N:` heading — no exceptions, no blank line between. Missing this annotation causes the step to be silently skipped.
 
 Each step follows this format:
 
 ```markdown
 ### Step N: Descriptive Title
-<!-- specbuddy:run-step  -->
+<!-- specbuddy:step -->
 
 [2-3 sentences describing what this step accomplishes and why]
 
@@ -128,7 +127,6 @@ Each step follows this format:
 - [ ] [3-5 criteria per step]
 
 **Dependencies:** [step numbers or "none"]
-**Estimated Time:** [X minutes/hours]
 ```
 
 #### Mention Relevant Skills
@@ -193,6 +191,17 @@ If no skills are relevant, simply omit the mention — do not force it.
 
 Split a file's edits across steps **only** when a hard dependency makes it necessary — for example, when a schema change must be followed by a migration before the consuming code can be written.
 
+**Prefer step boundaries where the code compiles.** Each step should leave the codebase in a buildable state. If a change breaks callers — renaming a method, changing a signature, removing an exported symbol — update all call sites in the same step. Do not defer the fan-out to a later step just to make the initial step smaller. A step that leaves the project with compile errors forces the next step to inherit broken state and obscures whether its own changes are correct.
+
+**Example of a violation:**
+- Step 1: Change signature of `UserService.findById` to return `Optional<User>` — ❌ leaves every caller broken
+- Step 2: Update all callers of `findById` — inherits a broken build
+
+**Correct split:**
+- Step 1: Change signature of `UserService.findById` to return `Optional<User>` and update all call sites (`UserController`, `AuthService`, `AdminService`) — build passes
+
+An exception is allowed only when compilation between steps is genuinely impossible (e.g. the intermediate state requires a generated file or a migration) — and in that case, state the reason explicitly in the step description.
+
 **Example of a justified split:**
 - Step 1: Update `src/models/User.ts` to add the `role` field — Success criterion: migration script generated
 - Step 2: Run `npm run db:migrate` — Success criterion: migration applied to the database
@@ -202,16 +211,34 @@ Without the migration step between 1 and 3, step 3 would fail at runtime. That d
 
 Step size should reflect a **coherent unit of work**, not a time estimate.
 
-### 8. Smart Detection
+## Annotation Behavior
 
-Adapt to project type by config file and test command:
+Two annotation strings are used by the SpecBuddy harness. They must appear exactly as specified below — no attributes, no extra spaces inside the tag, no variations of any kind. Any deviation makes the annotation unrecognized.
 
-| Language | Config | Test |
-|---|---|---|
-| TypeScript/JS | `package.json`, `tsconfig.json` | `npm test` |
-| Python | `requirements.txt`, `pyproject.toml` | `pytest` |
-| Go | `go.mod` | `go test ./...` |
-| Rust | `Cargo.toml` | `cargo test` |
+### Rule 1 — Exact syntax, no attributes
+
+The only valid annotation forms are:
+
+- `<!-- specbuddy:step -->`
+- `<!-- specbuddy:create-plan -->`
+
+Do not add IDs, attributes, extra whitespace inside the delimiters, or any other modification. Write them exactly as shown above.
+
+### Rule 2 — `<!-- specbuddy:step -->` placement
+
+Every `### Step N:` heading must be followed immediately — on the very next line, with no blank line between — by `<!-- specbuddy:step -->`. This annotation is the harness's sole mechanism for locating executable steps. A missing annotation causes the step to be silently skipped and never executed.
+
+### Rule 3 — `<!-- specbuddy:create-plan -->` lifecycle
+
+When the plan-generator finds `<!-- specbuddy:create-plan -->` in a document, it signals "generate the plan here." After generating the plan content, the annotation line itself must be deleted — the plan content takes its place. The annotation must not appear anywhere in the finished plan file.
+
+### Rule 4 — Preserve existing `<!-- specbuddy:step -->` annotations
+
+When editing or refining an existing plan that already contains `<!-- specbuddy:step -->` annotations, those annotations must not be moved, removed, or modified. Only add the annotation to newly created steps; leave all existing annotations exactly as they are.
+
+### Rule 5 — Do not touch unknown annotations
+
+If the document contains HTML comment annotations that are not `<!-- specbuddy:step -->` or `<!-- specbuddy:create-plan -->`, leave them exactly as they are. Do not remove, modify, reformat, or otherwise alter any unrecognized annotation.
 
 ## File Naming
 
@@ -226,7 +253,7 @@ Generate filename from feature: extract key terms, convert to kebab-case, keep c
 ## Quality Checklist
 
 Before finalizing:
-- [ ] **REQUIRED:** All steps have numbered headings (`### Step N: Title`) followed by `<!-- specbuddy:run-step  -->` comment on the very next line — missing this comment is a hard blocker; the step will not execute
+- [ ] **REQUIRED:** All steps have numbered headings (`### Step N: Title`) followed by `<!-- specbuddy:step -->` comment on the very next line (see [Annotation Behavior](#annotation-behavior)) — missing this comment is a hard blocker; the step will not execute
 - [ ] All steps have clear success criteria (3-5 each)
 - [ ] Dependencies form valid DAG (no cycles)
 - [ ] File references use correct paths
@@ -260,9 +287,10 @@ Include dependency installation and prerequisite steps in the plan.
 Create plan at `.specs/plans/[filename].md` and report:
 - File path
 - Number of steps
-- Estimated effort
 - First step execution command
 - Summary of key milestones
+
+Follow the annotation lifecycle described in [Annotation Behavior — Rule 3](#rule-3----specbuddycreate-plan-lifecycle) to handle the `<!-- specbuddy:create-plan -->` annotation.
 
 ---
 
