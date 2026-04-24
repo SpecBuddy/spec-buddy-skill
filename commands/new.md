@@ -1,5 +1,5 @@
 ---
-description: Create a new specification file in .specs directory
+description: Create a new specification file
 ---
 
 # Create New Specification Command

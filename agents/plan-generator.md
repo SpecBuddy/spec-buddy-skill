@@ -187,6 +187,28 @@ If no skills are relevant, simply omit the mention — do not force it.
 
 **Default to coarse-grained steps.** A step may freely touch as many files as needed. Do not create small steps just to track progress — the developer will sub-divide a step themselves if it turns out to need more detail.
 
+**Steps are high-level, not granular. Refinement happens during execution, not during planning.** A step describes a coherent unit of work, not a per-keystroke checklist. Do not pre-decompose a step into micro-actions in the plan — the executor (agent or developer) discovers the right decomposition while doing the work, with the actual code in front of them. A plan is a roadmap, not a script. If a step turns out to be too vague at execution time, the developer will ask to break it down then — that path is cheap. The reverse (un-fragmenting a plan padded with granular steps) is expensive and noisy, and is the failure mode this guidance exists to prevent.
+
+**Lean toward underestimating complexity, not overestimating it.** When sizing the task and choosing a row in the norms table below, pick the smaller category if you are torn between two. Assume the project is more regular and the executor more capable than your worst-case reading suggests. Underestimating produces a lean plan that the developer can grow on demand; overestimating produces a bloated plan full of defensive steps for problems that never materialize. The cost of being wrong on the low side is one "please split this step" message; the cost of being wrong on the high side is a plan that nobody wants to read.
+
+**Step count norms by task size.** The numbers below are upper bounds, not targets. Aim for fewer steps than the max whenever possible — if the developer cannot follow a step, they will ask to split it. The reverse (a plan with too many tiny steps) is harder to recover from and the failure mode this guidance exists to prevent.
+
+| Task size  | Examples                                                                                          | Max step count                                                           |
+|------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Trivial    | Config tweak, single-function fix, doc edit, one-line change                                      | **1**                                                                    |
+| Small      | New file, single endpoint, simple addition, localized refactor                                    | **1–2**                                                                  |
+| Medium     | New module spanning a few files, multi-file refactor, new feature reusing existing infrastructure | **2–4**                                                                  |
+| Large      | New subsystem, cross-cutting change, feature touching multiple layers                             | **4–8**                                                                  |
+| Very large | New service, major architectural change, multi-subsystem rewrite                                  | **8–15** — beyond 15, split into sub-features and produce multiple plans |
+
+A plan that exceeds the upper bound for its category is a signal to either (a) merge adjacent steps that share a coherent unit of work, or (b) split the work into separate plans. It is **not** a signal to keep the step count and add more detail per step.
+
+**Do not create a step for:**
+- A single command invocation that has no decision points (fold into the preceding or following step's Actions)
+- "Verify" or "review" tasks that are already covered by the previous step's Success Criteria
+- Setup that the developer has clearly already done (don't add `npm install` if the project is already running)
+- Documentation updates that are mechanical follow-ups to the implementation (fold into the implementation step)
+
 **Anti-pattern: editing the same file in two different steps without a justified reason.** If both edits belong together, they belong in one step.
 
 Split a file's edits across steps **only** when a hard dependency makes it necessary — for example, when a schema change must be followed by a migration before the consuming code can be written.
@@ -268,8 +290,8 @@ Before finalizing:
 ### Ambiguous Description
 Ask clarifying questions: Which component? What defines success? What's the current baseline?
 
-### Large Scope (50+ steps)
-Suggest breaking into sub-features or offer multiple related plans.
+### Large Scope (>15 steps)
+The plan exceeds the upper bound of the "Very large" category in [Step Granularity](#7-step-granularity). Suggest breaking into sub-features and producing multiple related plans rather than one oversized plan.
 
 ### Missing Dependencies
 Include dependency installation and prerequisite steps in the plan.
