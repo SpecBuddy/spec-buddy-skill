@@ -1,0 +1,37 @@
+{
+  "name": "spec-buddy-codex-marketplace",
+  "interface": {
+    "displayName": "Spec Buddy (Codex)"
+  },
+  "owner": {
+    "name": "Alex"
+  },
+  "plugins": [
+    {
+      "name": "spec-buddy",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "spec-buddy",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yourusername/spec-buddy-skill",
+        "path": "./",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

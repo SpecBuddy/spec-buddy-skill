@@ -1,0 +1,17 @@
+{
+  "name": "spec-buddy",
+  "description": "Plugin for working with specifications and technical documentation",
+  "version": "1.1.0",
+  "author": {
+    "name": "Alexander"
+  },
+  "homepage": "https://github.com/SpecBuddy/spec-buddy-skill",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Spec Buddy",
+    "shortDescription": "Author, refine, and validate technical specifications",
+    "longDescription": "Spec Buddy helps you create, refine, and validate specification and planning documents. It provides skills to analyze specs for completeness and clarity, validate them against industry best practices, and generate structured implementation plans that can be executed step by step.",
+    "developerName": "Alexander",
+    "category": "Productivity"
+  }
+}

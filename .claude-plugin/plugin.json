@@ -1,9 +1,11 @@
 {
   "name": "spec-buddy",
   "description": "Plugin for working with specifications and technical documentation",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "author": {
     "name": "Alexander"
   },
-  "homepage": "https://github.com/yourusername/spec-buddy-skill"
+  "homepage": "https://github.com/SpecBuddy/spec-buddy-skill",
+  "commands": "./commands/",
+  "agents": "./agents/"
 }
