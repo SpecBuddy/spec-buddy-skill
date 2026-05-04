@@ -2,8 +2,13 @@
 
 set -e
 
-PATH=$($SHELL -l -c 'echo $PATH' 2>/dev/null || echo "$PATH")
-export PATH
+_PATH=$($SHELL -l -c 'echo $PATH' 2>/dev/null || echo "")
+if [ -n "$_PATH" ]; then
+  export PATH="$_PATH"
+fi
+
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 
 REPO_URL="https://github.com/SpecBuddy/spec-buddy-skill.git"
 BASE_DIR="$HOME/.agents"
