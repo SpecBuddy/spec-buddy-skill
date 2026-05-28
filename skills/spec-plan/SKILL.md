@@ -109,9 +109,56 @@ Determine if input is description mode, spec mode, or file mode (see Input Elici
 - **Read** — examine `package.json`, `tsconfig.json`, key entry points.
 - **Grep** — find existing patterns, similar features, testing frameworks.
 
+### 2b. Discover Toolchain
+
+Before writing the plan, determine which tools the executing agent will need. This goes into the plan's YAML frontmatter as a `toolchain` key — `ClaudeAgentBackend` reads it to populate the Claude Code `allow` permissions list before launching the agent.
+
+**Skills** — from the skills available in the current session, select those relevant to the plan's domain. Always include `spec-buddy:execute`. Add domain-specific skills where applicable (e.g., `amplicode-spring-skills:spring-data-jpa` for JPA work, `amplicode-spring-skills:connekt` for HTTP testing).
+
+**MCP servers** — include servers whose capabilities are needed by the plan (e.g., `jetbrains` for plans that interact with the IDE or read diagnostics).
+
+**Commands** — detect the project build tool from root files and emit the canonical build/test commands:
+- gradle project → `./gradlew build`, `./gradlew test`
+- maven project → `mvn package`, `mvn test`
+- js/npm project → `npm run build`, `npm test`
+
+Emit all discovered entries in the plan's YAML frontmatter:
+
+---
+specbuddy-type: plan
+spec: .specs/my-feature.md   # omit if not spec mode
+toolchain:
+  skills:
+    - spec-buddy:execute
+    - amplicode-spring-skills:spring-data-jpa
+  mcp:
+    - jetbrains
+  commands:
+    - ./gradlew test
+    - ./gradlew compileKotlin
+---
+
 ### 3. Generate Plan Structure
 
-Create a comprehensive plan with these sections:
+Rewrite the file YAML frontmatter block populating it with the toolchain discovered in step 2b:
+
+---
+specbuddy-type: plan
+spec: .specs/my-feature.md   # omit if not spec mode
+toolchain:
+  skills:
+    - spec-buddy:execute
+    - amplicode-spring-skills:spring-data-jpa
+  mcp:
+    - jetbrains
+  commands:
+    - ./gradlew test
+---
+
+**Important Note: Always write frontmatter only in the beginning of the file, before specification text**
+
+
+Then add these sections:
 - Overview (2–3 sentences)
 - Goals (3–5 primary objectives)
 - Scope (in / out of scope)
@@ -308,6 +355,7 @@ Before finalizing:
 - [ ] Risks and mitigations identified.
 - [ ] **Minimal code examples** (references preferred).
 - [ ] Relevant skills mentioned in step descriptions where applicable.
+- [ ] Plan frontmatter contains a `toolchain` key with `skills`, `mcp`, and `commands` entries.
 
 ## Error Handling
 
