@@ -69,13 +69,13 @@ if [ -d "$HOME/.qwen" ] || command -v qwen >/dev/null 2>&1; then
   echo "✅ Qwen Code skills ready"
 fi
 
-# --- Claude Code: marketplace plugin ---
+# --- Claude Code: local plugin ---
 if command -v claude >/dev/null 2>&1; then
-  echo "🤖 Claude Code found, installing plugin..."
+  echo "🤖 Claude Code found, installing plugin locally..."
 
-  claude plugin marketplace add "$REPO_URL" || true
-  claude plugin install spec-buddy@spec-buddy-repo || true
-  claude plugin update spec-buddy@spec-buddy-repo || true
+claude plugin marketplace add "$REPO_URL" || true
+claude plugin install spec-buddy@spec-buddy-repo --scope local || true
+claude plugin update spec-buddy@spec-buddy-repo --scope local || true
 
   echo "✅ Claude Code plugin ready"
 else

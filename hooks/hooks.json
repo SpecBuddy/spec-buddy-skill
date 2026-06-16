@@ -1,5 +1,15 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"Load spec-buddy:specbuddy-workflow skill before each task or any other skill\""
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "matcher": "step-executor",
