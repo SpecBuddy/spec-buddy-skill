@@ -1,10 +1,10 @@
 ---
 name: execute
-description: Execute exactly one step from an implementation plan in `.specs/plans/`. Reads the plan, isolates the requested step, gathers specification context from the plan's References section, performs the step's actions, validates every success criterion, and reports results without proceeding to other steps.
+description: Execute exactly one step from an implementation plan in `specs/plans/`. Reads the plan, isolates the requested step, gathers specification context from the plan's References section, performs the step's actions, validates every success criterion, and reports results without proceeding to other steps.
 triggers:
   - "execute step N from this plan"
   - "run the next step of the plan"
-  - "implement step 2 of `.specs/plans/foo.md`"
+  - "implement step 2 of `specs/plans/foo.md`"
   - "perform step `Setup` from the plan"
   - "do the first step of this plan"
   - "execute one step of the implementation plan"
@@ -17,16 +17,16 @@ Execute a single step from an implementation plan, with full specification conte
 ## Input Elicitation
 
 You need two pieces of information:
-1. The plan file path (typically under `.specs/plans/`).
+1. The plan file path (typically under `specs/plans/`).
 2. Which step to execute, identified by its number (e.g. `1`, `2`) or by its full step name (e.g. `Step 2: Hash Password`).
 
-If either is missing or unclear, ask the user before proceeding. If the plan file does not exist, tell the user and offer similar files in `.specs/plans/` if any.
+If either is missing or unclear, ask the user before proceeding. If the plan file does not exist, tell the user and offer similar files in `specs/plans/` if any.
 
 ## Procedure
 
 ### 1. Read the Plan File
 
-Read the plan file. If not found, report the error with similar paths under `.specs/plans/` and stop.
+Read the plan file. If not found, report the error with similar paths under `specs/plans/` and stop.
 
 ### 2. Extract the Requested Step
 

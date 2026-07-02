@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Generate a structured, executable implementation plan from a feature description, an existing specification file under `.specs/`, or a source file targeted for refactoring. Saves the plan to `.specs/plans/<name>.md` with numbered steps, success criteria, and dependencies.
+description: Generate a structured, executable implementation plan from a feature description, an existing specification file under `specs/`, or a source file targeted for refactoring. Saves the plan to `specs/plans/<name>.md` with numbered steps, success criteria, and dependencies.
 triggers:
   - "create an implementation plan"
   - "plan this feature"
@@ -14,7 +14,7 @@ triggers:
 
 Generate a structured, executable implementation plan from one of three input modes:
 1. **Description mode** — a plain-text feature description.
-2. **Spec mode** — a path to an existing specification file (typically under `.specs/`).
+2. **Spec mode** — a path to an existing specification file (typically under `specs/`).
 3. **File mode** — a path to a source file targeted for refactoring.
 
 You perform plan generation directly. There is no separate sub-agent to dispatch to.
@@ -23,12 +23,12 @@ You perform plan generation directly. There is no separate sub-agent to dispatch
 
 Determine the input mode from what the user said:
 - If they pasted or wrote a feature description, use **description mode**.
-- If they referenced a specification file (e.g. `.specs/user-auth.md`), use **spec mode**.
+- If they referenced a specification file (e.g. `specs/user-auth.md`), use **spec mode**.
 - If they referenced a source file to refactor (e.g. `src/legacy/UserService.ts`), use **file mode**.
 
 If the request is empty or genuinely ambiguous, ask the user which of the three inputs they want to use, and for the path or description, then continue.
 
-For spec mode and file mode, verify the referenced file exists by reading it. If the path does not exist, tell the user and offer the closest matches in `.specs/` (for spec mode) or ask for the correct path (for file mode).
+For spec mode and file mode, verify the referenced file exists by reading it. If the path does not exist, tell the user and offer the closest matches in `specs/` (for spec mode) or ask for the correct path (for file mode).
 
 ---
 
@@ -123,15 +123,10 @@ Create a comprehensive plan with these sections:
 
 ### 4. Generate Implementation Steps
 
-> **CRITICAL — `<!-- specbuddy:step -->` comment is MANDATORY.**
->
-> See [Annotation Behavior](#annotation-behavior) for the complete rules. In summary: `<!-- specbuddy:step -->` must appear on the line immediately after every `### Step N:` heading — no exceptions, no blank line between. Missing this annotation causes the step to be silently skipped.
-
 Each step follows this format:
 
 ```markdown
 ### Step N: Descriptive Title
-<!-- specbuddy:step -->
 
 [2-3 sentences describing what this step accomplishes and why]
 
@@ -257,35 +252,6 @@ Without the migration step between 1 and 3, step 3 would fail at runtime. That d
 
 Step size should reflect a **coherent unit of work**, not a time estimate.
 
-## Annotation Behavior
-
-Two annotation strings are used by the SpecBuddy harness. They must appear exactly as specified below — no attributes, no extra spaces inside the tag, no variations of any kind. Any deviation makes the annotation unrecognized.
-
-### Rule 1 — Exact syntax, no attributes
-
-The only valid annotation forms are:
-
-- `<!-- specbuddy:step -->`
-- `<!-- specbuddy:create-plan -->`
-
-Do not add IDs, attributes, extra whitespace inside the delimiters, or any other modification. Write them exactly as shown above.
-
-### Rule 2 — `<!-- specbuddy:step -->` placement
-
-Every `### Step N:` heading must be followed immediately — on the very next line, with no blank line between — by `<!-- specbuddy:step -->`. This annotation is the harness's sole mechanism for locating executable steps. A missing annotation causes the step to be silently skipped and never executed.
-
-### Rule 3 — `<!-- specbuddy:create-plan -->` lifecycle
-
-When you find `<!-- specbuddy:create-plan -->` in a document (typically at the end of a spec produced by the `spec-new` skill), it signals "generate the plan here." After generating the plan content, the annotation line itself must be deleted — the plan content takes its place. The annotation must not appear anywhere in the finished plan file.
-
-### Rule 4 — Preserve existing `<!-- specbuddy:step -->` annotations
-
-When editing or refining an existing plan that already contains `<!-- specbuddy:step -->` annotations, those annotations must not be moved, removed, or modified. Only add the annotation to newly created steps; leave all existing annotations exactly as they are.
-
-### Rule 5 — Do not touch unknown annotations
-
-If the document contains HTML comment annotations that are not `<!-- specbuddy:step -->` or `<!-- specbuddy:create-plan -->`, leave them exactly as they are. Do not remove, modify, reformat, or otherwise alter any unrecognized annotation.
-
 ## File Naming
 
 Generate filename from the feature: extract key terms, convert to kebab-case, keep concise (2–5 words).
@@ -294,12 +260,12 @@ Generate filename from the feature: extract key terms, convert to kebab-case, ke
 - "Add user authentication with JWT" → `user-authentication.md`
 - "Refactor API error handling" → `api-error-handling.md`
 
-**Path:** `.specs/plans/<filename>.md`
+**Path:** `specs/plans/<filename>.md`
 
 ## Quality Checklist
 
 Before finalizing:
-- [ ] **REQUIRED:** All steps have numbered headings (`### Step N: Title`) followed by `<!-- specbuddy:step -->` on the very next line — missing this comment is a hard blocker; the step will not execute.
+- [ ] All steps have numbered headings (`### Step N: Title`).
 - [ ] All steps have clear success criteria (3–5 each).
 - [ ] Dependencies form a valid DAG (no cycles).
 - [ ] File references use correct paths.
@@ -333,13 +299,11 @@ Include dependency installation and prerequisite steps in the plan.
 
 ## Output
 
-Create the plan at `.specs/plans/<filename>.md` and report:
+Create the plan at `specs/plans/<filename>.md` and report:
 - File path.
 - Number of steps.
 - A summary of key milestones.
 - A pointer that the user can now proceed to executing the first step (the `spec-execute` skill handles step execution).
-
-Follow the annotation lifecycle described in [Annotation Behavior — Rule 3](#rule-3----specbuddycreate-plan-lifecycle) to handle the `<!-- specbuddy:create-plan -->` annotation.
 
 ---
 

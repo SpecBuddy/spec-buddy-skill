@@ -4,7 +4,7 @@ description: Re-execute a plan step with corrective feedback, without modifying 
 
 # Refine Generation Command
 
-Re-execute a step using user feedback to correct previously generated code. The plan file is **not** modified.
+Re-execute a step using user feedback to correct previously generated code. The plan file is **not** modified. You perform the re-execution **directly** — there is no sub-agent to dispatch to.
 
 ## Usage
 
@@ -50,74 +50,33 @@ If `<userDiffPath>` is non-empty and not `""`, read the diff file. If not found,
 
 ### 4. Find the Requested Step
 
-Scan for headings matching `<step-name>` (case-insensitive). Extract the full step section. If not found, list available steps, show an error, and stop.
+Scan for headings matching `<step-name>` (case-insensitive). Extract the full step section (from its heading to the next heading). If not found, list available steps, show an error, and stop.
 
 ### 5. Extract Specification Reference
 
-Check the plan's `## References` section for a spec file path (`@file:<path>`). Note it for use in the agent prompt if found.
+Check the plan's `## References` section for a specification file path. If one is found, read that spec for overall context.
 
-### 6. Launch Step Executor Agent
+### 6. Re-execute the Step with Corrective Feedback
 
-Use the Task tool to launch the `step-executor` agent. Fill in all placeholders before launching.
+Re-execute the step yourself to fix the issue in the previously generated code.
 
-```
-Task tool parameters:
-- subagent_type: "step-executor"
-- description: "Re-execute step <step-name> from <plan-file> with corrective feedback"
-- prompt: [see template below]
-```
+🎯 **CRITICAL: Execute ONLY this step. Do NOT execute other steps. Do NOT modify the plan file — only fix the implementation code.**
 
-**Agent Prompt Template:**
+Use all available evidence of what was wrong:
+- **Diff** — the manual edits the user applied to the generated code after the last run. Use it to understand what the user was dissatisfied with. **Do NOT re-apply the diff** — those changes may already be in place, or may have been reverted before this command runs. Treat it as evidence, not a patch.
+- **Inline comments** — per-line comments pointing at specific problems.
+- **Free-form feedback** — the user's description of what to change.
+- **Specification context** — the spec found in step 5 (if any), for overall intent.
 
-```markdown
-You are re-executing a plan step to fix an issue in the previously generated code.
+Then:
+1. Read any referenced context (spec, files under the step's "Context" section, line ranges).
+2. Use the diff, inline comments, and feedback to understand what was wrong.
+3. Perform the step's actions, correcting the issues described.
+4. Validate ALL of the step's success criteria.
 
-🎯 CRITICAL: Execute ONLY the step shown below. Do NOT execute other steps.
-   The plan file must NOT be modified — only fix the implementation code.
+### 7. Verify, Report, and Identify Next Step
 
-## Diff (manual edits the user made after the previous execution)
-
-This diff captures changes the user applied to the generated code after the last agent run.
-Use it to understand what the user was dissatisfied with. Do NOT re-apply these changes —
-they may already be in place, or may have been reverted before this command runs.
-
-<if userDiffPath provided and file was found: @file:<userDiffPath>>
-<if no diff or file not found: (no diff provided)>
-
-## Inline Comments
-
-<paste inline comments here, e.g.:
-- src/auth/hash.ts:8: must be async>
-<if none: (no inline comments)>
-
-## Free-form Feedback
-
-<paste free-form feedback text here>
-<if none: (no additional feedback)>
-
-## Specification Context
-
-<if spec file reference found: @file:<spec-path>>
-<if no spec reference found: (No specification provided - working with step context only)>
-
-## Step to Execute
-
-<paste the complete step section here, from its heading to the next heading>
-
----
-
-Execute this step now:
-1. Read any @file: references above for context
-2. Use the diff, inline comments, and feedback to understand what was wrong
-3. Perform the actions listed in the step, correcting the issues described
-4. Validate ALL success criteria
-5. Report your results — include which files were changed
-
-Remember: Execute THIS step ONLY. Do not modify the plan file.
-```
-
-### 7. Validate and Report
-
-After the agent completes, verify it performed actual work (used tools, created/modified reported files). If validation fails, show an error suggesting retry.
-
-Show the agent's results and confirm the plan file was not modified. Identify the next step if one exists.
+1. **Verify your own work** — confirm you actually used tools and that every file you report as changed exists on disk (e.g. `ls -l <path>`). If verification fails, do not report success: redo the work for real and verify again.
+2. **Report results** — summarize what you changed, list the files changed, and confirm which success criteria were met. Confirm the plan file was **not** modified.
+3. **Propagate discovered context** — if you learned anything while re-executing that is relevant for *subsequent* steps (file structures, API shapes, naming conventions, existing patterns, dependency versions, unexpected findings), list those items and ask the user whether to update the next steps in the plan to reference them. If nothing useful surfaced, skip this silently.
+4. **Identify the next step** (do not execute it) if one exists in the plan, so the user can decide whether to proceed.

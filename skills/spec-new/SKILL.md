@@ -1,6 +1,6 @@
 ---
 name: new
-description: Create a new specification document in `.specs/` from a feature description, project idea, or requirements brief. Produces a comprehensive markdown spec covering goals, requirements, technical design, and open questions, ready to drive planning and implementation.
+description: Create a new specification document in `specs/` from a feature description, project idea, or requirements brief. Produces a comprehensive markdown spec covering goals, requirements, technical design, and open questions, ready to drive planning and implementation.
 triggers:
   - "create a new specification"
   - "draft a spec for this feature"
@@ -63,19 +63,12 @@ Generate a comprehensive specification with the following structure.
 **Footer:**
 - **Open Questions** — items that still need clarification
 - **References** — links to related docs, issues, prior specs
-- At the very end of the document, add the comment exactly as shown:
-
-  ```
-  <!-- specbuddy:create-plan  -->
-  ```
-
-  This comment is an IDE action anchor — the IDE renders it as a clickable action that triggers plan generation for this specification. It must appear verbatim, with no attributes or modifications.
 
 ## File Creation
 
 Save the specification to a markdown file:
 - If the user supplied a file path, save directly to that path.
-- Otherwise, derive an appropriate filename from the feature name using lowercase kebab-case (for example `user-authentication.md`, `api-redesign.md`) and save to `.specs/<generated-name>.md`.
+- Otherwise, derive an appropriate filename from the feature name using lowercase kebab-case (for example `user-authentication.md`, `api-redesign.md`) and save to `specs/<generated-name>.md`.
 
 After creating the file, confirm the saved location and offer to:
 - Make any immediate edits the user wants.

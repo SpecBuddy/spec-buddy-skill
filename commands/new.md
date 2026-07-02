@@ -53,14 +53,12 @@ The user has provided: $ARGUMENTS
 **Footer:**
 - **Open Questions**: Items that need clarification
 - **References**: Links to related docs, issues, specs
-- At the very end of the document, add the comment: `<!-- specbuddy:create-plan  -->`
-  This comment serves as an IDE action anchor — the IDE will render it as a clickable action that triggers `/spec-buddy:plan` for this specification file.
 
 ## File Creation
 
 4. Save the specification to a file:
    - If the user provided a file path in $ARGUMENTS, save directly to that path
-   - Otherwise, generate an appropriate filename using lowercase with dashes (e.g., `user-authentication.md`, `api-redesign.md`) and save to `.specs/[generated-name].md`
+   - Otherwise, generate an appropriate filename using lowercase with dashes (e.g., `user-authentication.md`, `api-redesign.md`) and save to `specs/[generated-name].md`
 
 5. After creating the file, confirm the location and offer to:
    - Make any immediate edits

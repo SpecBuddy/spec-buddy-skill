@@ -58,7 +58,7 @@ You are now refining the document based on the user's feedback. Apply the follow
    - Remove steps or sections if requested.
    - Reorder or split steps if requested.
    - Preserve overall document structure and markdown formatting.
-4. Preserve all existing SpecBuddy annotations exactly as they are. In particular, every `<!-- specbuddy:step -->` comment that already exists must stay attached to its step heading on the line immediately after the heading. Do not remove, move, or modify these annotations. Do not touch unknown HTML-comment annotations either.
+4. Leave any existing HTML-comment annotations exactly as they are — do not remove, move, or modify them.
 5. Report a brief summary of the changes you made (which steps or sections were added, modified, or removed).
 
 **Rules:**

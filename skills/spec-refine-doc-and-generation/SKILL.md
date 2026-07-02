@@ -55,7 +55,7 @@ You are refining the document based on user feedback about a specific step.
 1. Read the document carefully.
 2. Read the diff, inline comments, and free-form feedback to understand what went wrong with the previous implementation, and what change in the document would prevent it from happening again.
 3. Edit the document file in place to apply the requested changes — typically by rewriting the targeted step, adjusting its actions or success criteria, or splitting/merging it if needed.
-4. Preserve all existing SpecBuddy annotations exactly as they are. In particular, every `<!-- specbuddy:step -->` comment must remain on the line immediately after its `### Step N:` heading. Do not remove, move, or modify these annotations. Leave any unrecognized HTML-comment annotations untouched as well.
+4. Leave any existing HTML-comment annotations exactly as they are — do not remove, move, or modify them.
 5. Report a brief summary of the document changes (Phase 1 summary).
 
 **Rules for Phase 1:**

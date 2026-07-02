@@ -4,7 +4,7 @@ description: Refine any markdown document based on feedback — for a specific s
 
 # Refine Document Command
 
-Edit a markdown document based on user feedback. Can target a specific step or the entire document. Does **not** touch source code.
+Edit a markdown document based on user feedback. Can target a specific step or the entire document. Does **not** touch source code. You perform the refinement **directly** — there is no sub-agent to dispatch to.
 
 ## Usage
 
@@ -58,80 +58,25 @@ Read the document file. If not found, show an error and stop.
 
 Skip in document mode. In step mode, if `<userDiffPath>` is non-empty and not `""`, read the diff file. If not found, continue with `(no diff provided)`.
 
-### 4. Launch Document Refinement Agent
+### 4. Refine the Document
 
-Use the Task tool to launch a general-purpose agent. Fill in all placeholders before launching.
+Refine the document yourself, applying the feedback in the context of the chosen mode. Gather everything first: the document content (from step 2), the diff (from step 3), the inline comments, and the free-form feedback.
 
-```
-Task tool parameters:
-- description: "Refine document <doc-file> based on feedback [about <step-name> | on the whole document]"
-- prompt: [see template below]
-```
+**Context by mode:**
+- **Step mode** — the user just executed step `<step-name>` and has feedback about it. The diff captures changes the user applied to the generated code after the last run; use it to understand what the user was dissatisfied with. **Do NOT re-apply the diff** — those changes may already be in place, or may have been reverted before this command runs. Treat the diff as evidence of dissatisfaction, not a patch.
+- **Document mode** — the user is reviewing the document as a whole and has feedback about its structure, steps, or completeness. No specific step was executed; there is no diff.
 
-**Agent Prompt Template:**
+**Apply the changes:**
+1. Read the document carefully.
+2. In step mode, read the diff and comments to understand what went wrong in the implementation. In document mode, read the feedback to understand what the user wants changed about the document structure.
+3. Edit the document file (Edit or Write tool) to apply the requested changes: rewrite steps that need changing, add new steps if requested, remove steps if requested, reorder or split steps if requested. Preserve overall structure and markdown formatting.
+4. Report a brief summary of the changes you made (which steps were added, modified, or removed; or section-level changes in document mode).
 
-```markdown
-You are refining a document based on user feedback.
-
-## Current Document
-
-@file:<doc-file>
-
-## Context
-
-<if step mode:>
-The user just executed step "<step-name>" and has feedback about it.
-<end if>
-
-<if document mode:>
-The user is reviewing the document as a whole and has feedback about its structure, steps, or completeness. No specific step was executed.
-<end if>
-
-## Diff (manual edits the user made after the previous execution)
-
-<if step mode:>
-This diff captures changes the user applied to the generated code after the last agent run.
-Use it to understand what the user was dissatisfied with. Do NOT re-apply these changes —
-they may already be in place, or may have been reverted before this command runs.
-
-<if userDiffPath provided and file was found: @file:<userDiffPath>>
-<if no diff or file not found: (no diff provided)>
-<end if>
-
-<if document mode:>
-(not applicable — no step was executed)
-<end if>
-
-## Inline Comments
-
-<paste inline comments here, e.g.:
-- src/auth/hash.ts:12: bcrypt rounds should be 6, not 12>
-<if none: (no inline comments)>
-
-## Free-form Feedback
-
-<paste free-form feedback text here>
-<if none: (no additional feedback)>
-
-## Task
-
-1. Read the document carefully
-2. <if step mode:> Read the diff and comments to understand what went wrong in the implementation
-   <if document mode:> Read the feedback to understand what the user wants changed about the document structure
-3. Edit the plan file (using the Edit or Write tool) to apply the requested changes:
-   - Rewrite steps that need changing
-   - Add new steps if requested
-   - Remove steps if requested
-   - Reorder or split steps if requested
-   - Preserve overall structure and markdown formatting
-4. Report a brief summary of the changes you made (which steps were added, modified, or removed)
-
-Rules:
-- Do NOT touch any source code files
-- Only modify the document file itself
-- If the feedback is ambiguous, apply the most reasonable interpretation and note your assumption
-```
+**Rules:**
+- Do **NOT** touch any source code files — only modify the document file itself.
+- Preserve the document's overall structure and markdown formatting; leave any HTML-comment annotations exactly as they are.
+- If the feedback is ambiguous, apply the most reasonable interpretation and note your assumption.
 
 ### 5. Report Changes
 
-After the agent completes, show its summary of changes. If no changes were reported, warn the user that the feedback may have been unclear.
+Show your summary of changes. If you made no changes, warn the user that the feedback may have been unclear.

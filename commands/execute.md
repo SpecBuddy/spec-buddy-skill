@@ -4,7 +4,7 @@ description: Execute one step from an implementation plan
 
 # Execute Plan Step Command
 
-Execute a single step from an implementation plan with full specification context.
+Execute a single step from an implementation plan with full specification context. You perform the work **directly** — there is no sub-agent to dispatch to.
 
 ## Usage
 
@@ -18,126 +18,103 @@ Execute a single step from an implementation plan with full specification contex
 
 **Example:**
 ```
-/spec-buddy:execute .specs/plans/add-auth.md 1
+/spec-buddy:execute specs/plans/add-auth.md 1
 ```
 
 ## Instructions
 
-When this command is invoked, follow these steps:
+When this command is invoked, follow these steps.
 
 ### 1. Parse Arguments
 
-Extract plan file path and step number from `$ARGUMENTS`:
-- Expected format: `<plan-file> <step-number>`
-- Example: `.specs/plans/feature.md 1`
-
-If arguments are missing or malformed:
-- Show error: "Usage: /spec-buddy:execute <plan-file> <step-id>"
-- Show example usage
-- Stop execution
+Extract the plan file path and step number from `$ARGUMENTS` (expected format: `<plan-file> <step-number>`). If arguments are missing or malformed, show `Usage: /spec-buddy:execute <plan-file> <step-id>` with an example and stop.
 
 ### 2. Read Plan File
 
-Use the Read tool to load the plan file:
-- If file not found, show error: "Plan file not found: <path>"
-- List similar files in .specs/plans/ if available
-- Stop execution
+Use the Read tool to load the plan file. If not found, show `Plan file not found: <path>`, list similar files in `specs/plans/` if available, and stop.
 
 ### 3. Extract Step Content
 
-Find the requested step in the plan by its number:
-- Scan for headings matching `### Step <N>:` (e.g., `### Step 1: Setup`)
-- Extract all content from that heading until the next `###`-level heading or end of file
+Find the requested step by its number: scan for headings matching `### Step <N>:` (e.g. `### Step 1: Setup`) and extract all content from that heading until the next `###`-level heading or end of file.
 
-If step not found:
-- Show error: "Step <N> not found in plan"
-- List all available steps by finding all `### Step N:` headings in the plan
-- Show format: "Available steps: 1 (Setup), 2 (Implementation), 3 (Tests)"
-- Stop execution
+If the step is not found, show `Step <N> not found in plan`, list all available steps (e.g. `Available steps: 1 (Setup), 2 (Implementation), 3 (Tests)`), and stop.
 
-### 4. Launch Step Executor Agent
+### 4. Extract Specification Context
 
-Use the Task tool to launch the step-executor agent:
+Check the plan's `## References` section for a specification file path. If one is found, read that spec for overall context. If none is found, work from the step content alone — no warning needed (the step's own `@file:` / backtick references supply what you need).
 
-```
-Task tool parameters:
-- subagent_type: "step-executor"
-- model: "sonnet"
-- description: "Execute step <step-id> from <plan-file>"
-- prompt: [see template below]
-```
+### 5. Execute the Step
 
-**Agent Prompt Template:**
+Now switch into focused step-execution mode. The rules below are the executor's instructions — apply them to the single step you extracted in step 3.
 
-```markdown
-# Execute Implementation Plan Step
+🎯 **CRITICAL: Execute ONLY this step. Do NOT execute other steps or proceed beyond it.**
 
-You are executing ONE SPECIFIC STEP from an implementation plan.
+**Workflow:**
 
-🎯 CRITICAL: Execute ONLY the step shown below. Do NOT execute other steps.
+1. **Understand overall context** — read the specification (the path from the References section, if any) to understand what is being built: the goals, requirements, and constraints.
+2. **Focus on your step** — you are executing ONLY the extracted step. It is a markdown section from its `### Step N:` heading to the next heading; everything you need is in that section.
+3. **Review context** — read any files referenced under the step's "Context" section. Use `path#L10-L20` line-range references to examine specific sections. Understand what you are changing before changing it.
+4. **Execute actions** — follow the step's "Actions" section. Run listed commands with Bash, read context files with Read, create files with Write, edit with Edit, search with Glob/Grep as needed.
+5. **Validate success criteria** — review ALL checkboxes in the step's "Success Criteria" section, verify each is met, test your changes if testing is part of the criteria, and note the status of each.
+6. **Report results** — summarize what you accomplished, which files were created/modified/deleted, which criteria were met, and any issues or blockers.
 
-## Specification Context
+**Critical rules.** ✅ DO: execute THIS step only; complete ALL its success criteria; read context files before changing them; test if required; stop after completing the step. ❌ DO NOT: execute multiple steps; act on the rest of the plan beyond this one step; proceed to the next step automatically; skip success-criteria validation.
 
-<if the plan's References section contains a spec file path, write: "@file:<spec-path>">
+**When things fail:** explain the error clearly, stop (don't try alternative approaches beyond the step's scope), and report what succeeded and what failed so the user can decide whether to retry or adjust.
 
-<if no spec reference found in the plan, write: "(No specification provided - working with step context only)">
+### 6. Verify Your Own Work
 
-## Step to Execute
+Before reporting completion, confirm you actually performed the work — do not claim success without it:
 
-<paste the complete step section here, from its ### heading to the next ### heading>
+1. **Tool usage** — if you reached this point without using any tools (Read/Write/Edit/Bash), that is a red flag: you cannot have completed the step.
+2. **File changes** — if you reported creating or modifying files, verify they exist (e.g. `ls -l <path>`) and have recent modification times.
+3. If verification fails, do **not** report success. Show:
+   ```
+   ⚠️ Step not actually completed: files were reported as changed but do not exist on disk.
 
----
+   Re-run the actions using the Write/Edit/Bash tools and verify again before reporting.
+   ```
+   Then redo the work for real.
 
-Execute this step now, following your workflow instructions:
-1. Understand the specification context by reading any @file: references above
-2. Read any files or line ranges referenced in the step
-3. Perform the actions listed in the step
-4. Run any commands listed under Actions
-5. Validate ALL success criteria
-6. Report your results
+### 7. Display Results and Next Step
 
-Remember: Execute THIS step ONLY. Do not proceed to other steps.
-```
+After verification passes:
 
-### 5. Validate Agent Work
+1. **Show structured output** using this format:
+   ```
+   ## Step Execution: <step-title>
 
-After the agent completes, verify it actually performed work:
+   ### What I Did
+   <concise summary of actions taken>
 
-1. **Check Tool Usage**: Look at the agent's response metadata
-   - If `tool_uses: 0` or no tools were called, this is a red flag
-   - Agent may have hallucinated completion without doing work
+   ### Files Changed
+   - Created: <file paths>
+   - Modified: <file paths>
+   - Deleted: <file paths>
 
-2. **Verify File Changes**: If agent reports creating/modifying files:
-   - Use Bash `ls -l` to verify files exist
-   - Check file modification timestamps are recent
-   - If files don't exist, report error
+   ### Commands Executed
+   - <list of commands run>
 
-3. **Validation Actions**:
-   - If validation passes: Continue to step 6
-   - If validation fails: Show error message:
-     ```
-     ⚠️ Validation Failed: Agent reported completion but did not perform actual work
+   ### Success Criteria Status
+   - [x] Criterion 1: <description> ✓
+   - [x] Criterion 2: <description> ✓
+   - [ ] Criterion 3: <description> ✗ (reason if failed)
 
-     The agent claimed to create/modify files but they don't exist, or the agent
-     didn't use any tools. This is a hallucination.
+   ### Result
+   ✅ Step completed successfully
+   (or ❌ Step failed: <reason>)
 
-     Suggestions:
-     - Retry the step: /spec-buddy:execute <plan-file> <step-id>
-     - Check the agent transcript for details
-     - Report this issue if it persists
-     ```
+   ### Notes
+   <any important observations or issues>
+   ```
 
-### 6. Display Results
+2. **Propagate discovered context.** Review what you learned while executing that is relevant for *subsequent* steps — file structures, API shapes, naming conventions, existing patterns, dependency versions, unexpected findings. If anything useful surfaced, list those items and ask the user whether to update the next steps in the plan to reference them. If nothing useful surfaced, skip this silently.
 
-After validation passes:
-
-1. **Show Agent Output**: The agent will provide structured output with its results
-
-2. **Identify Next Step** (if available):
-   - Parse the plan to find all `### Step N:` headings
-   - Find the step after the current one
+3. **Identify the next step** (do not execute it): parse the plan for all `### Step N:` headings and find the one after the current step.
    - If found: "Next: `/spec-buddy:execute <plan-file> <N+1>`"
-   - If current step was last: "✓ All steps in plan completed!"
+   - If the current step was the last: "✓ All steps in plan completed!"
+
+The user controls progression — never run the next step automatically.
 
 ## Error Handling
 
@@ -145,7 +122,7 @@ After validation passes:
 ```
 ❌ Error: Plan file not found: <path>
 
-Make sure the path is correct. Plans are typically in .specs/plans/
+Make sure the path is correct. Plans are typically in specs/plans/
 ```
 
 ### Invalid Step Number
@@ -167,39 +144,36 @@ Usage: /spec-buddy:execute <plan-file> <step-number>
 Usage: /spec-buddy:execute <plan-file> <step-number>
 
 Example:
-  /spec-buddy:execute .specs/plans/add-feature.md 1
+  /spec-buddy:execute specs/plans/add-feature.md 1
 ```
 
 ### Missing Specification Reference
-
-If no spec reference is found in the plan's References section, the agent prompt will note "(No specification provided - working with step context only)". No warning is shown to the user — the subagent gathers what it needs from the step's own `@file:` references.
+If no spec reference is found in the plan's References section, work from the step's own references. No warning is shown to the user.
 
 ## Examples
 
 ### Example 1: Execute Setup Step
 ```
-User: /spec-buddy:execute .specs/plans/add-auth.md 1
+User: /spec-buddy:execute specs/plans/add-auth.md 1
 
-→ Reads .specs/plans/add-auth.md
-→ Finds specification reference in References section
-→ Extracts "### Step 1: Setup" section
-→ Launches step-executor agent with @file: reference to spec
-→ Agent installs dependencies
-→ Agent validates success criteria
-→ Reports completion
-→ Shows: Next: /spec-buddy:execute .specs/plans/add-auth.md 2
+→ Read specs/plans/add-auth.md
+→ Find the specification reference in the References section
+→ Extract the "### Step 1: Setup" section
+→ Read the spec for context
+→ Install dependencies, validate success criteria, report completion
+→ Show: Next: /spec-buddy:execute specs/plans/add-auth.md 2
 ```
 
 ### Example 2: Execute Code Implementation Step
 ```
-User: /spec-buddy:execute .specs/plans/api-feature.md implement-endpoint
+User: /spec-buddy:execute specs/plans/api-feature.md 3
 
-→ Agent receives specification context
-→ Agent reads step details and file references
-→ Agent creates/modifies code files
-→ Agent runs tests (if in success criteria)
-→ Agent reports files changed and criteria met
-→ Shows next step suggestion
+→ Read the spec for context
+→ Read the step details and file references
+→ Create/modify code files
+→ Run tests (if in success criteria)
+→ Report files changed and criteria met
+→ Suggest the next step
 ```
 
 ### Example 3: Step Not Found
@@ -216,40 +190,20 @@ Available steps:
   - 5: Update Docs
 ```
 
-### Example 4: Agent Hallucination Detected
-```
-User: /spec-buddy:execute .specs/plans/feature.md 2
-
-→ Agent reports: "Created file commands/new-feature.md"
-→ Validation checks: ls -l commands/new-feature.md
-→ File not found!
-
-⚠️ Validation Failed: Agent reported completion but did not perform actual work
-
-The agent claimed to create commands/new-feature.md but the file doesn't exist.
-This is a hallucination - the agent reported work without actually using tools.
-
-Suggestions:
-- Retry the step: /spec-buddy:execute .specs/plans/feature.md 2
-- The retry will include explicit reminders to use the Write tool
-```
-
 ## Implementation Notes
 
-- **Context + Task**: Agent receives a `@file:` reference to the spec (why) and the full step content (what); the subagent reads files on its own
-- **One Step Only**: Strong emphasis on single-step execution throughout
-- **Validation**: Agent must check all success criteria before reporting completion
-- **Post-Execution Validation**: Command validates agent actually used tools and created files
-- **Hallucination Detection**: Catches cases where agent claims success without doing work
-- **User Control**: No automatic progression - user decides when to run next step
-- **Agent Tools**: step-executor has Read, Write, Edit, Bash, Glob, Grep tools
-- **Model**: Uses sonnet for good balance of capability and speed
+- **Context + step**: read the spec (why) plus the full step content (what), then do the work yourself.
+- **One step only**: strong emphasis on single-step execution throughout.
+- **Validation**: check all success criteria before reporting completion.
+- **Self-verification**: confirm you actually used tools and the reported files exist before claiming success.
+- **Context propagation**: after a step, surface context useful for later steps and offer to update them.
+- **User control**: no automatic progression — the user decides when to run the next step.
 
 ## Related Commands
 
 - `/spec-buddy:new` - Create new specification
-- `/spec-buddy:plan` - Generate implementation plan from spec (planned)
+- `/spec-buddy:plan` - Generate implementation plan from spec
 
 ---
 
-**Philosophy**: Execute one step at a time. User reviews results. User decides when to proceed. This ensures quality, control, and learning throughout the implementation process.
+**Philosophy**: Execute one step at a time. The user reviews results and decides when to proceed. This ensures quality, control, and learning throughout the implementation process.
