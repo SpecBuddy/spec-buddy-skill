@@ -9,7 +9,7 @@ Read a specification file and implement all its requirements in a single pass, w
 ## Usage
 
 ```
-/spec-buddy:spec-execute-whole-whole <spec-file>
+/spec-buddy:spec-execute-whole <spec-file>
 ```
 
 **Arguments:**
@@ -17,7 +17,7 @@ Read a specification file and implement all its requirements in a single pass, w
 
 **Example:**
 ```
-/spec-buddy:spec-execute-whole-whole .specs/add-auth.md
+/spec-buddy:spec-execute-whole .specs/add-auth.md
 ```
 
 ## Instructions
@@ -31,7 +31,7 @@ Extract the spec file path from `$ARGUMENTS`:
 - Example: `.specs/my-feature.md`
 
 If the argument is missing:
-- Show error: "Usage: /spec-buddy:spec-execute-whole-whole <spec-file>"
+- Show error: "Usage: /spec-buddy:spec-execute-whole <spec-file>"
 - Show example usage
 - Stop execution
 
@@ -126,7 +126,7 @@ Available specs:
 ## Related Commands
 
 - `/spec-buddy:spec-new` - Create a new specification file
-- `/spec-buddy:spec-plan` - Generate a step-by-step plan from a spec (then execute with `/spec-buddy:spec-execute-whole-step`)
+- `/spec-buddy:spec-plan` - Generate a step-by-step plan from a spec
 - `/spec-buddy:execute` - Execute a single step from an existing plan
 
 ---
